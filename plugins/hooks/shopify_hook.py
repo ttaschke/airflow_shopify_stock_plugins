@@ -18,7 +18,7 @@ class ShopifyHook(BaseHook):
         self.connection = self.get_connection(conn_id)
 
     def get_conn(self):
-        api_version = "2023-07"
+        api_version = "2025-01"
 
         shop_url = self.connection.host
         access_token = self.connection.password.strip()
