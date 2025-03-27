@@ -310,3 +310,36 @@ class TestShopifyUpdateStockCsvOperator(unittest.TestCase):
         self.operator.read_stock_data.assert_called_once()
         self.operator.get_product_variants.assert_called()
         mock_client.execute.assert_called()
+
+    @mock.patch(
+        "plugins.operators.shopify_update_stock_csv_operator.time.sleep",
+        return_value=None,
+    )
+    @mock.patch("plugins.operators.shopify_update_stock_csv_operator.ShopifyHook")
+    def test_execute_dry_run_mode(self, mock_shopify_hook, mock_sleep):
+        mock_client = mock.Mock()
+        mock_shopify_hook.return_value.get_conn.return_value = mock_client
+
+        operator_dry_run = ShopifyUpdateStockCsvOperator(
+            task_id="test_task",
+            conn_id="test_conn",
+            location_id="test_location",
+            file_location="test.csv",
+            sku_per_request=100,
+            wait_seconds=1,
+            dry_run=True,
+        )
+        operator_dry_run.read_stock_data = mock.Mock(
+            return_value={"SKU1": 50, "SKU2": 100}
+        )
+
+        operator_dry_run.get_product_variants = mock.Mock(
+            return_value=PRODUCT_VARIANTS_RESULT
+        )
+
+        context = {}
+
+        operator_dry_run.execute(context)
+
+        # Assert that the client does not execute the query
+        mock_client.execute.assert_not_called()
