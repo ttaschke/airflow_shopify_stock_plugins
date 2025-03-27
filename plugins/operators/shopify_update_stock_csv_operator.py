@@ -31,6 +31,7 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
         file_location,
         sku_per_request=100,
         wait_seconds=1,
+        dry_run=False,
         *args,
         **kwargs,
     ):
@@ -40,6 +41,7 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
         self.file_location = file_location
         self.sku_per_request = sku_per_request
         self.wait_seconds = wait_seconds
+        self.dry_run = dry_run
 
     def execute(self, context):
         """Updates product variants (SKU) stock at the given location via the Shopify API"""
@@ -104,21 +106,26 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
                 }
             """
             )
-
-            try:
-                response = client.execute(stock_update_query)
-                stock_update_response = json.loads(response)
-            except Exception as e:
-                raise AirflowException(f"Error updating stock: {e}")
-
-            if "errors" in stock_update_response:
-                raise AirflowException(
-                    f"Errors returned by Shopify API for stock update query: {stock_update_response['errors']}"
+            if self.dry_run:
+                self.log.info(
+                    f"DRY RUN - Query for updates {index} to {index+self.sku_per_request}:"
                 )
+                self.log.info(stock_update_query)
+            else:
+                try:
+                    response = client.execute(stock_update_query)
+                    stock_update_response = json.loads(response)
+                except Exception as e:
+                    raise AirflowException(f"Error updating stock: {e}")
 
-            self.log.info(
-                f"Update stock query cost: {stock_update_response['extensions']}"
-            )
+                if "errors" in stock_update_response:
+                    raise AirflowException(
+                        f"Errors returned by Shopify API for stock update query: {stock_update_response['errors']}"
+                    )
+
+                self.log.info(
+                    f"Update stock query cost: {stock_update_response['extensions']}"
+                )
 
             index = index + self.sku_per_request
             time.sleep(self.wait_seconds)
