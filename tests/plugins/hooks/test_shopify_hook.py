@@ -34,7 +34,7 @@ class TestShopifyHook(unittest.TestCase):
 
         # Assertions
         mock_shopify.Session.assert_called_once_with(
-            "myshop.myshopify.com", "2023-07", "access_token"
+            "myshop.myshopify.com", "2025-01", "access_token"
         )
         mock_shopify.ShopifyResource.activate_session.assert_called_once_with(
             mock_session

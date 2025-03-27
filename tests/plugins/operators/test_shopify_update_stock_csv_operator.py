@@ -219,11 +219,29 @@ class TestShopifyUpdateStockCsvOperator(unittest.TestCase):
 
         stock_update_response = {
             "data": {
-                "inventoryBulkAdjustQuantityAtLocation": {
-                    "inventoryLevels": [{"available": 50}, {"available": 150}]
+                "inventoryAdjustQuantities": {
+                    "inventoryAdjustmentGroup": {
+                        "createdAt": "2025-01-01T00:00:00Z",
+                        "reason": "other",
+                        "referenceDocumentUri": None,
+                        "changes": [
+                            {"name": "available", "delta": 2},
+                            {"name": "on_hand", "delta": 2},
+                        ],
+                    },
                 }
             },
-            "extensions": {"cost": {"requestedQueryCost": 10}},
+            "extensions": {
+                "cost": {
+                    "requestedQueryCost": 11,
+                    "actualQueryCost": 11,
+                    "throttleStatus": {
+                        "maximumAvailable": 2000.0,
+                        "currentlyAvailable": 1989,
+                        "restoreRate": 100.0,
+                    },
+                }
+            },
         }
         mock_client.execute.return_value = json.dumps(stock_update_response)
 

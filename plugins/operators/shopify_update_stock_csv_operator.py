@@ -58,8 +58,8 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
                 client, list(stock_data)[index : index + self.sku_per_request]
             )
 
-            # Calculate stock delta and build inventory adjustments for stock update query
-            inventory_adjustments = ""
+            # Calculate stock delta and build inventory changes for stock update query
+            inventory_changes = ""
 
             for product_variant in product_variants_result["data"]["productVariants"][
                 "edges"
@@ -71,16 +71,18 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
                 # Skip if no change in stock level
                 if updated_stock == 0:
                     continue
-                inventory_adjustments += (
+                inventory_changes += (
                     '{inventoryItemId: "'
                     + product_variant["node"]["inventoryItem"]["id"]
-                    + '", availableDelta: '
+                    + '", delta: '
                     + str(updated_stock)
-                    + "},"
+                    + ', locationId: "'
+                    + self.location_id
+                    + '"},'
                 )
 
             # Skip if no changes in any stock level were found
-            if len(inventory_adjustments) == 0:
+            if len(inventory_changes) == 0:
                 self.log.info(
                     "Update stock query skipped, because of no stock level changes for product variants in batch"
                 )
@@ -92,19 +94,13 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
             stock_update_query = (
                 """
                 mutation {
-                  inventoryBulkAdjustQuantityAtLocation(
-                    locationId: \""""
-                + self.location_id
-                + """\",
-                    inventoryItemAdjustments: ["""
-                + inventory_adjustments
-                + """
-                      ]) {
-
-                    inventoryLevels {
-                      available
-                    }
-                  }
+                  inventoryAdjustQuantities(input: {
+                    reason: "other",
+                    name: "available",
+                    changes : ["""
+                + inventory_changes
+                + """]
+                  })
                 }
             """
             )
