@@ -101,12 +101,6 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
                 + inventory_changes
                 + """]
                   })
-                  {
-                    userErrors {
-                      field
-                      message
-                    }
-                  }
                 }
             """
             )
