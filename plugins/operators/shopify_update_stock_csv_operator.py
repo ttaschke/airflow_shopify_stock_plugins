@@ -107,9 +107,7 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
             """
             )
             if self.dry_run:
-                self.log.info(
-                    "DRY RUN - Query for batch:"
-                )
+                self.log.info("DRY RUN - Query for batch:")
                 self.log.info(stock_update_query)
             else:
                 try:
