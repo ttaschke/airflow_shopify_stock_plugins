@@ -108,7 +108,7 @@ class ShopifyUpdateStockCsvOperator(BaseOperator):
             )
             if self.dry_run:
                 self.log.info(
-                    f"DRY RUN - Query for updates {index} to {index+self.sku_per_request}:"
+                    "DRY RUN - Query for batch:"
                 )
                 self.log.info(stock_update_query)
             else:
